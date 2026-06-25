@@ -1,0 +1,7 @@
+http:
+  host: "0.0.0.0"
+  port: "${http.port}"
+
+system:
+  host: "customer-system-api.us-e1.cloudhub.io"
+  port: "80"
