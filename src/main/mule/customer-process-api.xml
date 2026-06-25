@@ -1,14 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd ">
+<mule xmlns:tls="http://www.mulesoft.org/schema/mule/tls" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd ">
 	<configuration-properties file="config-${env}.yaml" />
 	<http:listener-config name="customer-process-api-httpListenerConfig">
-		<http:listener-connection host="0.0.0.0" port="${http.port}" />
-	</http:listener-config>
 
+		<http:listener-connection host="0.0.0.0" port="${https.port}" protocol="HTTPS">
+
+			<tls:context>
+				<tls:key-store path="${tls.context.keystore.path}" password="${tls.context.keystore.password}" keyPassword="${tls.context.keystore.keyPassword}" type="${tls.context.keystore.type}" />
+			</tls:context>
+
+		</http:listener-connection>
+
+	</http:listener-config>
 	<http:request-config name="HTTP_Request_System_Config">
-		<http:request-connection host="${system.host}" port="${system.port}" />
+		<http:request-connection host="${system.host}" port="${system.port}" protocol="HTTPS">
+
+			<tls:context>
+				<tls:trust-store path="${tls.context.keystore.path}" password="${tls.context.keystore.password}" type="${tls.context.keystore.type}" />
+			</tls:context>
+
+		</http:request-connection>
 	</http:request-config>
 
 	<apikit:config name="customer-process-api-config" api="resource::38cd32ec-dbaf-4d31-bc6e-25087cbf3c52:customer-process-api:1.0.0:raml:zip:customer-process-api.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
@@ -130,8 +144,8 @@ output application/json
 			<http:body>
         		<![CDATA[#[payload]]]>
     		</http:body>
-    		
-    		<!-- Passing correlationId to next layer -->
+
+			<!-- Passing correlationId to next layer -->
 			<http:headers>
    			 #[{
     		    "X-Correlation-ID": vars.correlationId
@@ -197,7 +211,7 @@ output application/json
 		<logger level="INFO" message="CREATE customer" />
 
 		<http:request method="POST" config-ref="HTTP_Request_System_Config" path="/api/customers">
-			
+
 			<http:body><![CDATA[#[payload]]]></http:body>
 			<!-- Passing correlationId to next layer -->
 			<http:headers>
@@ -207,6 +221,24 @@ output application/json
 			</http:headers>
 
 		</http:request>
+
+		<ee:transform>
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    customerId: payload.id,
+    status: "CREATED"
+}
+]]></ee:set-payload>
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="httpStatus">201</ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+
+
 
 	</flow>
 </mule>
