@@ -17,15 +17,9 @@
     </http:request-config>
     <apikit:config name="customer-process-api-config" api="resource::38cd32ec-dbaf-4d31-bc6e-25087cbf3c52:customer-process-api:3.0.0:raml:zip:customer-process-api.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
     <flow name="customer-process-api-main">
-        <http:listener config-ref="customer-process-api-httpListenerConfig" path="/api/*">
-            <http:response statusCode="#[vars.httpStatus default 200]">
-                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
-            </http:response>
-            <http:error-response statusCode="#[vars.httpStatus default 500]">
-                <http:body>#[payload]</http:body>
-                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
-            </http:error-response>
-        </http:listener>
+        <http:listener config-ref="customer-process-api-httpListenerConfig" path="/api/*" />
+          
+ 
         <!-- Reusing correlationId from Experience layer for traceability -->
         <set-variable variableName="correlationId" value="#[attributes.headers.'x-correlation-id' default correlationId]" />
         <logger level="INFO" message="PROCESS START - correlationId: #[vars.correlationId]" />
