@@ -1,240 +1,214 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
-	xmlns:tls="http://www.mulesoft.org/schema/mule/tls" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation=" http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd ">
-	<configuration-properties file="config-${env}.yaml" />
-	<http:listener-config name="customer-process-api-httpListenerConfig">
-		<http:listener-connection host="0.0.0.0" port="${https.port}" protocol="HTTPS">
-			<tls:context>
-				<tls:key-store path="${tls.context.keystore.path}" password="${tls.context.keystore.password}" keyPassword="${tls.context.keystore.keyPassword}" type="${tls.context.keystore.type}" />
-			</tls:context>
-		</http:listener-connection>
-	</http:listener-config>
-	<http:request-config name="HTTP_Request_System_Config">
-		<http:request-connection host="${system.host}" port="${system.port}" protocol="HTTPS">
-			<tls:context>
-				<tls:trust-store path="${tls.context.keystore.path}" password="${tls.context.keystore.password}" type="${tls.context.keystore.type}" />
-			</tls:context>
-		</http:request-connection>
-	</http:request-config>
-	<apikit:config name="customer-process-api-config" api="resource::38cd32ec-dbaf-4d31-bc6e-25087cbf3c52:customer-process-api:2.0.0:raml:zip:customer-process-api.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
-	<flow name="customer-process-api-main">
-		<http:listener config-ref="customer-process-api-httpListenerConfig" path="/api/*">
-			<http:response statusCode="#[vars.httpStatus default 200]">
-				<http:headers>#[vars.outboundHeaders default {}]</http:headers>
-			</http:response>
-			<http:error-response statusCode="#[vars.httpStatus default 500]">
-				<http:body>#[payload]</http:body>
-				<http:headers>#[vars.outboundHeaders default {}]</http:headers>
-			</http:error-response>
-		</http:listener>
-		<!-- Reusing correlationId from Experience layer for traceability -->
-		<set-variable variableName="correlationId" value="#[attributes.headers.'x-correlation-id' default correlationId]" />
-		<logger level="INFO" message="PROCESS START - correlationId: #[vars.correlationId]" />
-		<apikit:router config-ref="customer-process-api-config" />
-		<error-handler>
-			<on-error-propagate type="APIKIT:BAD_REQUEST">
-				<ee:transform doc:name="Transform Message">
-					<ee:message>
-						<ee:set-payload><![CDATA[%dw 2.0
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:tls="http://www.mulesoft.org/schema/mule/tls" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation=" http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd ">
+    <configuration-properties file="config-${env}.yaml" />
+    <http:listener-config name="customer-process-api-httpListenerConfig">
+        <http:listener-connection host="0.0.0.0" port="${https.port}" protocol="HTTPS">
+            <tls:context>
+                <tls:key-store path="${tls.context.keystore.path}" password="${tls.context.keystore.password}" keyPassword="${tls.context.keystore.keyPassword}" type="${tls.context.keystore.type}" />
+            </tls:context>
+        </http:listener-connection>
+    </http:listener-config>
+    <http:request-config name="HTTP_Request_System_Config">
+        <http:request-connection host="${system.host}" port="${system.port}" protocol="HTTPS">
+            <tls:context>
+                <tls:trust-store path="${tls.context.keystore.path}" password="${tls.context.keystore.password}" type="${tls.context.keystore.type}" />
+            </tls:context>
+        </http:request-connection>
+    </http:request-config>
+    <apikit:config name="customer-process-api-config" api="resource::38cd32ec-dbaf-4d31-bc6e-25087cbf3c52:customer-process-api:3.0.0:raml:zip:customer-process-api.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <flow name="customer-process-api-main">
+        <http:listener config-ref="customer-process-api-httpListenerConfig" path="/api/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <!-- Reusing correlationId from Experience layer for traceability -->
+        <set-variable variableName="correlationId" value="#[attributes.headers.'x-correlation-id' default correlationId]" />
+        <logger level="INFO" message="PROCESS START - correlationId: #[vars.correlationId]" />
+        <apikit:router config-ref="customer-process-api-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:BAD_REQUEST">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
 output application/json
 ---
 {message: "Bad request"}]]></ee:set-payload>
-					</ee:message>
-					<ee:variables>
-						<ee:set-variable variableName="httpStatus">400</ee:set-variable>
-					</ee:variables>
-				</ee:transform>
-			</on-error-propagate>
-			<on-error-propagate type="APIKIT:NOT_FOUND">
-				<ee:transform doc:name="Transform Message">
-					<ee:message>
-						<ee:set-payload><![CDATA[%dw 2.0
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">400</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
 output application/json
 ---
 {message: "Resource not found"}]]></ee:set-payload>
-					</ee:message>
-					<ee:variables>
-						<ee:set-variable variableName="httpStatus">404</ee:set-variable>
-					</ee:variables>
-				</ee:transform>
-			</on-error-propagate>
-			<on-error-propagate type="APIKIT:METHOD_NOT_ALLOWED">
-				<ee:transform doc:name="Transform Message">
-					<ee:message>
-						<ee:set-payload><![CDATA[%dw 2.0
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:METHOD_NOT_ALLOWED">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
 output application/json
 ---
 {message: "Method not allowed"}]]></ee:set-payload>
-					</ee:message>
-					<ee:variables>
-						<ee:set-variable variableName="httpStatus">405</ee:set-variable>
-					</ee:variables>
-				</ee:transform>
-			</on-error-propagate>
-			<on-error-propagate type="APIKIT:NOT_ACCEPTABLE">
-				<ee:transform doc:name="Transform Message">
-					<ee:message>
-						<ee:set-payload><![CDATA[%dw 2.0
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">405</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_ACCEPTABLE">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
 output application/json
 ---
 {message: "Not acceptable"}]]></ee:set-payload>
-					</ee:message>
-					<ee:variables>
-						<ee:set-variable variableName="httpStatus">406</ee:set-variable>
-					</ee:variables>
-				</ee:transform>
-			</on-error-propagate>
-			<on-error-propagate type="APIKIT:UNSUPPORTED_MEDIA_TYPE">
-				<ee:transform doc:name="Transform Message">
-					<ee:message>
-						<ee:set-payload><![CDATA[%dw 2.0
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">406</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:UNSUPPORTED_MEDIA_TYPE">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
 output application/json
 ---
 {message: "Unsupported media type"}]]></ee:set-payload>
-					</ee:message>
-					<ee:variables>
-						<ee:set-variable variableName="httpStatus">415</ee:set-variable>
-					</ee:variables>
-				</ee:transform>
-			</on-error-propagate>
-			<on-error-propagate type="APIKIT:NOT_IMPLEMENTED">
-				<ee:transform doc:name="Transform Message">
-					<ee:message>
-						<ee:set-payload><![CDATA[%dw 2.0
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">415</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_IMPLEMENTED">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
 output application/json
 ---
 {message: "Not Implemented"}]]></ee:set-payload>
-					</ee:message>
-					<ee:variables>
-						<ee:set-variable variableName="httpStatus">501</ee:set-variable>
-					</ee:variables>
-				</ee:transform>
-			</on-error-propagate>
-		</error-handler>
-	</flow>
-	<flow name="put:\customers\(id):application\json:customer-process-api-config">
-
-		<!-- 1. Extract ID -->
-		<ee:transform doc:name="Extract ID">
-			<ee:variables>
-				<ee:set-variable variableName="id">
-					attributes.uriParams.'id'
-				</ee:set-variable>
-			</ee:variables>
-		</ee:transform>
-
-		<!-- 2. Log -->
-		<logger level="INFO" message="PROCESS - updating customer id: #[vars.id]" />
-
-		<!-- 3. Call System API -->
-		<http:request method="PUT" doc:name="Call System API - Update Customer" config-ref="HTTP_Request_System_Config" path="/api/customers/{id}">
-
-			<!-- BODY -->
-			<http:body><![CDATA[#[payload]]]></http:body>
-
-			<!-- HEADERS -->
-			<http:headers><![CDATA[#[{
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">501</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="put:\customers\(id):application\json:customer-process-api-config">
+        <!-- 1. Extract ID -->
+        <ee:transform doc:name="Extract ID">
+            <ee:variables>
+                <ee:set-variable variableName="id">attributes.uriParams.'id'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <!-- 2. Log -->
+        <logger level="INFO" message="PROCESS - updating customer id: #[vars.id]" />
+        <!-- 3. Call System API -->
+        <http:request method="PUT" doc:name="Call System API - Update Customer" config-ref="HTTP_Request_System_Config" path="/api/customers/{id}">
+            <!-- BODY -->
+            <http:body><![CDATA[#[payload]]]></http:body>
+            <!-- HEADERS -->
+            <http:headers><![CDATA[#[{
             "X-Correlation-ID": vars.correlationId
         }]]]></http:headers>
-
-			<!-- URI PARAMS -->
-			<http:uri-params><![CDATA[#[{
+            <!-- URI PARAMS -->
+            <http:uri-params><![CDATA[#[{
             id: vars.id
         }]]]></http:uri-params>
-
-		</http:request>
-
-		<!-- 4. Normalize System response -->
-		<ee:transform doc:name="Process Mapping">
-			<ee:message>
-				<ee:set-payload><![CDATA[%dw 2.0
+        </http:request>
+        <!-- 4. Normalize System response -->
+        <ee:transform doc:name="Process Mapping">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
 output application/json
 ---
 {
     customerId: payload.id,
     status: if (payload.rowsAffected.affectedRows > 0) "UPDATED" else "NOT_UPDATED"
 }]]></ee:set-payload>
-			</ee:message>
-		</ee:transform>
-	</flow>
-	<flow name="delete:\customers\(id):customer-process-api-config">
-		<!-- 1. Extract ID -->
-		<set-variable variableName="id" value="#[attributes.uriParams.id]" />
-
-		<!-- 2. Correlation ID -->
-		<set-variable variableName="correlationId" value="#[attributes.headers.'x-correlation-id' default correlationId]" />
-
-		<!-- 3. Log -->
-		<logger level="INFO" message="PROCESS DELETE customer #[vars.id]" />
-
-		<!-- 4. CALL SYSTEM API -->
-		<http:request method="DELETE" config-ref="HTTP_Request_System_Config" path="api/customers/{id}" target="systemResponse">
-
-			<http:headers><![CDATA[#[{
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="delete:\customers\(id):customer-process-api-config">
+        <!-- 1. Extract ID -->
+        <set-variable variableName="id" value="#[attributes.uriParams.id]" />
+        <!-- 2. Correlation ID -->
+        <set-variable variableName="correlationId" value="#[attributes.headers.'x-correlation-id' default correlationId]" />
+        <!-- 3. Log -->
+        <logger level="INFO" message="PROCESS DELETE customer #[vars.id]" />
+        <!-- 4. CALL SYSTEM API -->
+        <http:request method="DELETE" config-ref="HTTP_Request_System_Config" path="api/customers/{id}" target="systemResponse">
+            <http:headers><![CDATA[#[{
             "X-Correlation-ID": vars.correlationId
         }]]]></http:headers>
-
-			<http:uri-params><![CDATA[#[{
+            <http:uri-params><![CDATA[#[{
             id: vars.id
         }]]]></http:uri-params>
-
-		</http:request>
-
-		<!-- 5. SUCCESS RESPONSE -->
-		<ee:transform>
-			<ee:message>
-				<ee:set-payload><![CDATA[%dw 2.0
+        </http:request>
+        <!-- 5. SUCCESS RESPONSE -->
+        <ee:transform>
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
 output application/json
 ---
 {
     customerId: vars.id,
     status: "DELETED"
 }]]></ee:set-payload>
-			</ee:message>
-
-			<ee:variables>
-				<ee:set-variable variableName="httpStatus">200</ee:set-variable>
-			</ee:variables>
-		</ee:transform>
-
-		<!-- 6. ERROR HANDLING (SIN TRY) -->
-		<error-handler>
-
-			<on-error-continue type="HTTP:NOT_FOUND">
-
-				<ee:transform>
-					<ee:message>
-						<ee:set-payload><![CDATA[%dw 2.0
+            </ee:message>
+            <ee:variables>
+                <ee:set-variable variableName="httpStatus">200</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <!-- 6. ERROR HANDLING (SIN TRY) -->
+        <error-handler>
+            <on-error-continue type="HTTP:NOT_FOUND">
+                <ee:transform>
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
 output application/json
 ---
 {
     customerId: vars.id,
     status: "NOT_FOUND"
 }]]></ee:set-payload>
-					</ee:message>
-
-					<ee:variables>
-						<ee:set-variable variableName="httpStatus">404</ee:set-variable>
-					</ee:variables>
-				</ee:transform>
-
-			</on-error-continue>
-
-		</error-handler>
-	</flow>
-	<flow name="get:\customers:customer-process-api-config">
-		<logger level="INFO" message="GET all customers" />
-		<http:request method="GET" config-ref="HTTP_Request_System_Config" path="/api/customers">
-			<!-- Passing correlationId to next layer -->
-			<http:headers>#[{
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-continue>
+        </error-handler>
+    </flow>
+    <flow name="get:\customers:customer-process-api-config">
+        <logger level="INFO" message="GET all customers" />
+        <http:request method="GET" config-ref="HTTP_Request_System_Config" path="/api/customers">
+            <!-- Passing correlationId to next layer -->
+            <http:headers>#[{
 			"X-Correlation-ID": vars.correlationId
 			}]</http:headers>
-			<http:query-params><![CDATA[#[attributes.queryParams]]]></http:query-params>
-		</http:request>
-		<ee:transform doc:name="Build Process Response">
-			<ee:message>
-				<ee:set-payload><![CDATA[%dw 2.0
+            <http:query-params><![CDATA[#[attributes.queryParams]]]></http:query-params>
+        </http:request>
+        <ee:transform doc:name="Build Process Response">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
 output application/json
 ---
 {
@@ -243,42 +217,42 @@ output application/json
     correlationId: correlationId,
     customers: payload.data
 }]]></ee:set-payload>
-			</ee:message>
-		</ee:transform>
-	</flow>
-	<flow name="get:\customers\(id):customer-process-api-config">
-		<set-variable variableName="id" value="#[attributes.uriParams.id]" />
-		<logger level="INFO" message="GET customer id: #[vars.id]" />
-		<http:request method="GET" config-ref="HTTP_Request_System_Config" path="/api/customers/{id}">
-			<!-- Passing correlationId to next layer -->
-			<http:headers>#[{
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="get:\customers\(id):customer-process-api-config">
+        <set-variable variableName="id" value="#[attributes.uriParams.id]" />
+        <logger level="INFO" message="GET customer id: #[vars.id]" />
+        <http:request method="GET" config-ref="HTTP_Request_System_Config" path="/api/customers/{id}">
+            <!-- Passing correlationId to next layer -->
+            <http:headers>#[{
     		    "X-Correlation-ID": vars.correlationId
   			  }]</http:headers>
-			<http:uri-params><![CDATA[#[{ id: vars.id }]]]></http:uri-params>
-		</http:request>
-	</flow>
-	<flow name="post:\customers:application\json:customer-process-api-config">
-		<logger level="INFO" message="CREATE customer" />
-		<http:request method="POST" config-ref="HTTP_Request_System_Config" path="/api/customers">
-			<http:body><![CDATA[#[payload]]]></http:body>
-			<!-- Passing correlationId to next layer -->
-			<http:headers>#[{
+            <http:uri-params><![CDATA[#[{ id: vars.id }]]]></http:uri-params>
+        </http:request>
+    </flow>
+    <flow name="post:\customers:application\json:customer-process-api-config">
+        <logger level="INFO" message="CREATE customer" />
+        <http:request method="POST" config-ref="HTTP_Request_System_Config" path="/api/customers">
+            <http:body><![CDATA[#[payload]]]></http:body>
+            <!-- Passing correlationId to next layer -->
+            <http:headers>#[{
     		    "X-Correlation-ID": vars.correlationId
   			  }]</http:headers>
-		</http:request>
-		<ee:transform>
-			<ee:message>
-				<ee:set-payload><![CDATA[%dw 2.0
+        </http:request>
+        <ee:transform>
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
 output application/json
 ---
 {
     customerId: payload.id,
     status: "CREATED"
 }]]></ee:set-payload>
-			</ee:message>
-			<ee:variables>
-				<ee:set-variable variableName="httpStatus">201</ee:set-variable>
-			</ee:variables>
-		</ee:transform>
-	</flow>
+            </ee:message>
+            <ee:variables>
+                <ee:set-variable variableName="httpStatus">201</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+    </flow>
 </mule>
