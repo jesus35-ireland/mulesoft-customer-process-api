@@ -5,3 +5,4 @@ http:
 system:
   host: "customer-system-api.us-e1.cloudhub.io"
   port: "443"
+  protocol: "HTTPS"
