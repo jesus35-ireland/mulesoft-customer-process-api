@@ -1,13 +1,7 @@
-https:
+http:
   host: "0.0.0.0"
   port: "${http.port}"
-tls:
-  context:
-    keystore:
-      path: "keystore.jks"
-      keyPassword: "changeit"
-      password: "changeit"
-      type: "jks"
+
 system:
   host: "customer-system-api.us-e1.cloudhub.io"
-  port: "80"
+  port: "443"
